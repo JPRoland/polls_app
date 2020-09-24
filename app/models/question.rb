@@ -24,4 +24,15 @@ class Question < ApplicationRecord
     has_many :responses,
         through: :answer_choices,
         source: :responses
+
+    def results
+        answer_choices_with_counts = self.answer_choices
+            .select("answer_choices.text, COUNT(response.id) as num_responses")
+            .left_outer_joins(:responses)
+            .group("answer_choices.id")
+
+        answer_choices_with_counts.inject({}) do |results, answer_choice|
+            results[answer_choice.text] = answer_choice.num_responses; results
+        end
+    end
 end
